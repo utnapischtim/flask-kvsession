@@ -1,31 +1,27 @@
 from datetime import timedelta
 
-from conftest import app as app_, client as client_
 import pytest
 
+from flask_kvsession import KVSession, KVSessionExtension
 
 TEST_TTL = 300
 
 
 @pytest.fixture
-def redis_app(redis_store):
-    return app_(redis_store)
-
-
-@pytest.fixture
-def redis_client(redis_app):
-    return client_(redis_app)
+def app_with_redis_store(app, redis_store):
+     app.kvsession = KVSessionExtension(redis_store, app)
+     yield app
 
 
 def test_redis_expiration_permanent_session(
-    redis, redis_store, redis_app, redis_client
+    redis, redis_store, app_with_redis_store, client
 ):
-    redis_app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
+    app_with_redis_store.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
         seconds=TEST_TTL
     )
 
-    redis_client.get('/store-in-session/k1/v1/')
-    redis_client.get('/make-session-permanent/')
+    client.get('/store-in-session/k1/v1/')
+    client.get('/make-session-permanent/')
 
     sid = redis_store.keys()[0]
     ttl = redis.ttl(sid)
@@ -35,13 +31,13 @@ def test_redis_expiration_permanent_session(
 
 
 def test_redis_expiration_ephemeral_session(
-    redis, redis_store, redis_app, redis_client
+    redis, redis_store, app_with_redis_store, client
 ):
-    redis_app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
+    app_with_redis_store.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
         seconds=TEST_TTL
     )
 
-    redis_client.get('/store-in-session/k1/v1/')
+    client.get('/store-in-session/k1/v1/')
 
     sid = redis_store.keys()[0]
     ttl = redis.ttl(sid)

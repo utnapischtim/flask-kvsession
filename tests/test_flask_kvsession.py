@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # coding=utf8
 
-from datetime import timedelta
 import json
 import time
-
-from itsdangerous import Signer
-from six import b
+from datetime import timedelta
 
 import pytest
+from itsdangerous import Signer
+from six import b
 
 
 def json_dec(bs):

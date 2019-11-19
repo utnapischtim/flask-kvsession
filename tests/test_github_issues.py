@@ -1,8 +1,9 @@
-from flask import Flask, session
-from flask_kvsession import KVSessionExtension
 import pytest
 import redis
+from flask import Flask, session
 from simplekv.memory.redisstore import RedisStore
+
+from flask_kvsession import KVSessionExtension
 
 
 @pytest.fixture(

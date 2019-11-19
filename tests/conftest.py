@@ -1,12 +1,12 @@
 import json
 from datetime import datetime
 
-from flask import Flask, session
-from flask_kvsession import KVSessionExtension, KVSession
-from simplekv.memory import DictStore
-import six
-
 import pytest
+import six
+from flask import Flask, session
+from simplekv.memory import DictStore
+
+from flask_kvsession import KVSession, KVSessionExtension
 
 
 @pytest.fixture
@@ -22,23 +22,21 @@ def redis():
     except ConnectionError:
         pytest.skip('could not connect to redis')
     r.flushall()
-    return r
+    yield r
 
 
 @pytest.fixture
 def redis_store(redis):
     from simplekv.memory.redisstore import RedisStore
-    return RedisStore(redis)
+    yield RedisStore(redis)
 
 
 @pytest.fixture(params=['dict', 'redis'])
 def store(request):
     if request.param == 'dict':
-        return DictStore()
+        yield DictStore()
     elif request.param == 'redis':
-        return request.getfixturevalue('redis_store')
-
-    assert False
+        yield request.getfixturevalue('redis_store')
 
 
 @pytest.fixture
@@ -52,7 +50,7 @@ def client(app):
         get_session_cookie, client,
     )
 
-    return client
+    yield client
 
 
 @pytest.fixture
@@ -132,4 +130,4 @@ def app(store):
         # 5. PROFIT
         return 'PROFIT'
 
-    return app
+    yield app

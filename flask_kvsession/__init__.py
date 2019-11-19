@@ -4,18 +4,20 @@ flask_kvsession is a drop-in replacement module for Flask sessions that uses a
 """
 
 import calendar
+import re
+from datetime import datetime
+from random import SystemRandom
+
+from flask import current_app
+from flask.sessions import SessionInterface, SessionMixin
+from itsdangerous import BadSignature, Signer
+from werkzeug.datastructures import CallbackDict
+
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
-from datetime import datetime
-from random import SystemRandom
-import re
 
-from flask import current_app
-from flask.sessions import SessionMixin, SessionInterface
-from itsdangerous import Signer, BadSignature
-from werkzeug.datastructures import CallbackDict
 
 
 class SessionID(object):

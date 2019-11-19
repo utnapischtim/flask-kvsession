@@ -1,7 +1,7 @@
-from flask import Flask
-from flask_kvsession import KVSessionExtension
-
 import pytest
+from flask import Flask
+
+from flask_kvsession import KVSessionExtension
 
 
 @pytest.fixture

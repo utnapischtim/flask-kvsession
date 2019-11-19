@@ -29,3 +29,18 @@ def test_httponly_true(app, client):
     client.get('/store-in-session/k1/value1/')
     cookie = client.get_session_cookie()
     assert cookie.has_nonstandard_attr('HttpOnly')
+
+
+def test_default_samesite(app, client):
+    client.get('/store-in-session/k1/value1/')
+    cookie = client.get_session_cookie()
+
+    assert not cookie.has_nonstandard_attr('SameSite')
+
+
+def test_samesite_with_value(app, client):
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    client.get('/store-in-session/k1/value1/')
+    cookie = client.get_session_cookie()
+
+    assert cookie.has_nonstandard_attr('SameSite')
