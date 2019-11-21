@@ -3,11 +3,41 @@
 
 import json
 import time
+import six
 from datetime import timedelta
+from flask import Flask, session
 
 import pytest
 from itsdangerous import Signer
 from six import b
+from flask_kvsession import KVSession, KVSessionExtension, KVSessionInterface
+from flask import Flask
+
+
+class CustomSessionInterfaceWithPermanentAnonymousSession(KVSessionInterface):
+    def save_session(self, app, session, response):
+        return super(
+            CustomSessionInterfaceWithPermanentAnonymousSession,
+            self
+        ).save_session(app, session, response, anonymous_session=True)
+
+
+@pytest.fixture
+def app_with_session_interface_factory(store):
+    app = Flask(__name__)
+
+    app.config['SESSION_INTERFACE_FACTORY'] = \
+        CustomSessionInterfaceWithPermanentAnonymousSession
+    app.config['TESTING'] = True
+    app.config['SECRET_KEY'] = 'devkey'
+    app.kvsession = KVSessionExtension(store, app)
+
+    @app.route('/store-in-session/<key>/<value>/')
+    def store(key, value):
+        session[key] = value
+        return 'stored %r at %r' % (value, key)
+
+    yield app
 
 
 def json_dec(bs):
@@ -371,3 +401,10 @@ def test_path_session_path(app, client):
     client.get('/store-in-session/k1/value1/')
     cookie = client.get_session_cookie('/bar')
     assert cookie.path == '/bar'
+
+
+def test_custon_session_interface(app_with_session_interface_factory):
+    assert isinstance(
+        app_with_session_interface_factory.session_interface,
+        CustomSessionInterfaceWithPermanentAnonymousSession
+    )

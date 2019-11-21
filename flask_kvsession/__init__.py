@@ -8,10 +8,12 @@ import re
 from datetime import datetime
 from random import SystemRandom
 
+import six
 from flask import current_app
 from flask.sessions import SessionInterface, SessionMixin
 from itsdangerous import BadSignature, Signer
 from werkzeug.datastructures import CallbackDict
+from werkzeug.utils import import_string
 
 try:
     import cPickle as pickle
@@ -168,7 +170,23 @@ class KVSessionInterface(SessionInterface):
 
             return s
 
-    def save_session(self, app, session, response):
+    def store_session(self, session):
+        # save the session, now its no longer new (or modified)
+        if 'SESSION_PICKLE_PROTOCOL' in current_app.config:
+            # A Pickle Protocol was specified in the Flask app configuration so we will attempt to respect it.
+            data = self.serialization_method.dumps(dict(session),
+                                                    protocol=current_app.config['SESSION_PICKLE_PROTOCOL'])
+        else:
+            data = self.serialization_method.dumps(dict(session))
+        store = current_app.kvsession_store
+        if getattr(store, 'ttl_support', False):
+            # TTL is supported
+            ttl = current_app.permanent_session_lifetime.total_seconds()
+            store.put(session.sid_s, data, ttl)
+        else:
+            store.put(session.sid_s, data)
+
+    def save_session(self, app, session, response, anonymous_session=False):
         # we only save modified sessions
         if session.modified:
             # create a new session id if requested (by setting sid_s to None)
@@ -178,22 +196,7 @@ class KVSessionInterface(SessionInterface):
                     current_app.config['SESSION_RANDOM_SOURCE'].getrandbits(
                         app.config['SESSION_KEY_BITS'])).serialize()
 
-            # save the session, now its no longer new (or modified)
-            if 'SESSION_PICKLE_PROTOCOL' in current_app.config:
-                # A Pickle Protocol was specified in the Flask app configuration so we will attempt to respect it.
-                data = self.serialization_method.dumps(dict(session),
-                                                       protocol=current_app.config['SESSION_PICKLE_PROTOCOL'])
-            else:
-                data = self.serialization_method.dumps(dict(session))
-            store = current_app.kvsession_store
-
-            if getattr(store, 'ttl_support', False):
-                # TTL is supported
-                ttl = current_app.permanent_session_lifetime.total_seconds()
-                store.put(session.sid_s, data, ttl)
-            else:
-                store.put(session.sid_s, data)
-
+            self.store_session(session)
             session.new = False
             session.modified = False
 
@@ -271,8 +274,15 @@ class KVSessionExtension(object):
             raise ValueError('Must supply session_kvstore either on '
                              'construction or init_app().')
 
-        # set store on app, either use default
-        # or supplied argument
+        # set store on app, either use default or supplied argument
         app.kvsession_store = session_kvstore or self.default_kvstore
+
+        session_interface_factory = app.config.get('SESSION_INTERFACE_FACTORY')
+        if session_interface_factory:
+            if isinstance(session_interface_factory, six.string_types):
+                app.session_interface = import_string(session_interface_factory)()
+                return
+            app.session_interface = session_interface_factory()
+            return
 
         app.session_interface = KVSessionInterface()
