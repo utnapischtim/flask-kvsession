@@ -6,7 +6,7 @@ from flask_kvsession import KVSessionExtension
 
 @pytest.fixture
 def vapp():
-    return Flask('vapp')
+    return Flask("vapp")
 
 
 def test_delayed_construction(vapp, store):

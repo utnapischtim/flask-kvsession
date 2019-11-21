@@ -1,46 +1,46 @@
 def test_secure_false(app, client):
-    app.config['SESSION_COOKIE_SECURE'] = False
+    app.config["SESSION_COOKIE_SECURE"] = False
 
-    client.get('/store-in-session/k1/value1/')
+    client.get("/store-in-session/k1/value1/")
     cookie = client.get_session_cookie()
     assert not cookie.secure
 
 
 def test_secure_true(app, client):
-    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config["SESSION_COOKIE_SECURE"] = True
 
-    client.get('/store-in-session/k1/value1/')
+    client.get("/store-in-session/k1/value1/")
     cookie = client.get_session_cookie()
 
     assert cookie.secure
 
 
 def test_httponly_false(app, client):
-    app.config['SESSION_COOKIE_HTTPONLY'] = False
+    app.config["SESSION_COOKIE_HTTPONLY"] = False
 
-    client.get('/store-in-session/k1/value1/')
+    client.get("/store-in-session/k1/value1/")
     cookie = client.get_session_cookie()
-    assert not cookie.has_nonstandard_attr('HttpOnly')
+    assert not cookie.has_nonstandard_attr("HttpOnly")
 
 
 def test_httponly_true(app, client):
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
 
-    client.get('/store-in-session/k1/value1/')
+    client.get("/store-in-session/k1/value1/")
     cookie = client.get_session_cookie()
-    assert cookie.has_nonstandard_attr('HttpOnly')
+    assert cookie.has_nonstandard_attr("HttpOnly")
 
 
 def test_default_samesite(app, client):
-    client.get('/store-in-session/k1/value1/')
+    client.get("/store-in-session/k1/value1/")
     cookie = client.get_session_cookie()
 
-    assert not cookie.has_nonstandard_attr('SameSite')
+    assert not cookie.has_nonstandard_attr("SameSite")
 
 
 def test_samesite_with_value(app, client):
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    client.get('/store-in-session/k1/value1/')
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    client.get("/store-in-session/k1/value1/")
     cookie = client.get_session_cookie()
 
-    assert cookie.has_nonstandard_attr('SameSite')
+    assert cookie.has_nonstandard_attr("SameSite")

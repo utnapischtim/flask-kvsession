@@ -21,7 +21,6 @@ except ImportError:
     import pickle
 
 
-
 class SessionID(object):
     """Helper class for parsing session ids.
 
@@ -57,8 +56,7 @@ class SessionID(object):
 
     def serialize(self):
         """Serializes to the standard form of ``KEY_CREATED``"""
-        return '%x_%x' % (self.id, calendar.timegm(self.created.utctimetuple())
-                          )
+        return "%x_%x" % (self.id, calendar.timegm(self.created.utctimetuple()))
 
     @classmethod
     def unserialize(cls, string):
@@ -66,9 +64,8 @@ class SessionID(object):
 
         :param string: A string created by :meth:`serialize`.
         """
-        id_s, created_s = string.split('_')
-        return cls(int(id_s, 16),
-                   datetime.utcfromtimestamp(int(created_s, 16)))
+        id_s, created_s = string.split("_")
+        return cls(int(id_s, 16), datetime.utcfromtimestamp(int(created_s, 16)))
 
 
 class KVSession(CallbackDict, SessionMixin):
@@ -100,7 +97,7 @@ class KVSession(CallbackDict, SessionMixin):
         for k in list(self.keys()):
             del self[k]
 
-        if getattr(self, 'sid_s', None):
+        if getattr(self, "sid_s", None):
             current_app.kvsession_store.delete(self.sid_s)
             self.sid_s = None
 
@@ -117,7 +114,7 @@ class KVSession(CallbackDict, SessionMixin):
         """
         self.modified = True
 
-        if getattr(self, 'sid_s', None):
+        if getattr(self, "sid_s", None):
             # delete old session
             current_app.kvsession_store.delete(self.sid_s)
 
@@ -137,7 +134,8 @@ class KVSessionInterface(SessionInterface):
 
         if key is not None:
             session_cookie = request.cookies.get(
-                app.config['SESSION_COOKIE_NAME'], None)
+                app.config["SESSION_COOKIE_NAME"], None
+            )
 
             s = None
 
@@ -145,8 +143,9 @@ class KVSessionInterface(SessionInterface):
                 try:
                     # restore the cookie, if it has been manipulated,
                     # we will find out here
-                    sid_s = Signer(app.secret_key).unsign(
-                        session_cookie).decode('ascii')
+                    sid_s = (
+                        Signer(app.secret_key).unsign(session_cookie).decode("ascii")
+                    )
                     sid = SessionID.unserialize(sid_s)
 
                     if sid.has_expired(app.permanent_session_lifetime):
@@ -156,8 +155,11 @@ class KVSessionInterface(SessionInterface):
                         raise KeyError
 
                     # retrieve from store
-                    s = self.session_class(self.serialization_method.loads(
-                        current_app.kvsession_store.get(sid_s)))
+                    s = self.session_class(
+                        self.serialization_method.loads(
+                            current_app.kvsession_store.get(sid_s)
+                        )
+                    )
                     s.sid_s = sid_s
                 except (BadSignature, KeyError):
                     # either the cookie was manipulated or we did not find the
@@ -172,14 +174,15 @@ class KVSessionInterface(SessionInterface):
 
     def store_session(self, session):
         # save the session, now its no longer new (or modified)
-        if 'SESSION_PICKLE_PROTOCOL' in current_app.config:
+        if "SESSION_PICKLE_PROTOCOL" in current_app.config:
             # A Pickle Protocol was specified in the Flask app configuration so we will attempt to respect it.
-            data = self.serialization_method.dumps(dict(session),
-                                                    protocol=current_app.config['SESSION_PICKLE_PROTOCOL'])
+            data = self.serialization_method.dumps(
+                dict(session), protocol=current_app.config["SESSION_PICKLE_PROTOCOL"]
+            )
         else:
             data = self.serialization_method.dumps(dict(session))
         store = current_app.kvsession_store
-        if getattr(store, 'ttl_support', False):
+        if getattr(store, "ttl_support", False):
             # TTL is supported
             ttl = current_app.permanent_session_lifetime.total_seconds()
             store.put(session.sid_s, data, ttl)
@@ -191,27 +194,30 @@ class KVSessionInterface(SessionInterface):
         if session.modified:
             # create a new session id if requested (by setting sid_s to None)
             # this makes it possible to avoid session fixation
-            if not getattr(session, 'sid_s', None):
+            if not getattr(session, "sid_s", None):
                 session.sid_s = SessionID(
-                    current_app.config['SESSION_RANDOM_SOURCE'].getrandbits(
-                        app.config['SESSION_KEY_BITS'])).serialize()
+                    current_app.config["SESSION_RANDOM_SOURCE"].getrandbits(
+                        app.config["SESSION_KEY_BITS"]
+                    )
+                ).serialize()
 
             self.store_session(session)
             session.new = False
             session.modified = False
 
             # save sid_s in cookie
-            cookie_data = Signer(app.secret_key).sign(
-                session.sid_s.encode('ascii'))
+            cookie_data = Signer(app.secret_key).sign(session.sid_s.encode("ascii"))
 
-            response.set_cookie(key=app.config['SESSION_COOKIE_NAME'],
-                                value=cookie_data,
-                                expires=self.get_expiration_time(app, session),
-                                path=self.get_cookie_path(app),
-                                domain=self.get_cookie_domain(app),
-                                secure=app.config['SESSION_COOKIE_SECURE'],
-                                httponly=app.config['SESSION_COOKIE_HTTPONLY'],
-                                samesite=app.config['SESSION_COOKIE_SAMESITE'])
+            response.set_cookie(
+                key=app.config["SESSION_COOKIE_NAME"],
+                value=cookie_data,
+                expires=self.get_expiration_time(app, session),
+                path=self.get_cookie_path(app),
+                domain=self.get_cookie_domain(app),
+                secure=app.config["SESSION_COOKIE_SECURE"],
+                httponly=app.config["SESSION_COOKIE_HTTPONLY"],
+                samesite=app.config["SESSION_COOKIE_SAMESITE"],
+            )
 
 
 class KVSessionExtension(object):
@@ -222,7 +228,8 @@ class KVSessionExtension(object):
                             data will be store in.
     :param app: The app to activate. If not `None`, this is essentially the
                 same as calling :meth:`init_app` later."""
-    key_regex = re.compile('^[0-9a-f]+_[0-9a-f]+$')
+
+    key_regex = re.compile("^[0-9a-f]+_[0-9a-f]+$")
 
     def __init__(self, session_kvstore=None, app=None):
         self.default_kvstore = session_kvstore
@@ -267,17 +274,18 @@ class KVSessionExtension(object):
         Flask-KVSession's.
 
         :param app: The :class:`~flask.Flask` app to be initialized."""
-        app.config.setdefault('SESSION_KEY_BITS', 64)
-        app.config.setdefault('SESSION_RANDOM_SOURCE', SystemRandom())
+        app.config.setdefault("SESSION_KEY_BITS", 64)
+        app.config.setdefault("SESSION_RANDOM_SOURCE", SystemRandom())
 
         if not session_kvstore and not self.default_kvstore:
-            raise ValueError('Must supply session_kvstore either on '
-                             'construction or init_app().')
+            raise ValueError(
+                "Must supply session_kvstore either on " "construction or init_app()."
+            )
 
         # set store on app, either use default or supplied argument
         app.kvsession_store = session_kvstore or self.default_kvstore
 
-        session_interface_factory = app.config.get('SESSION_INTERFACE_FACTORY')
+        session_interface_factory = app.config.get("SESSION_INTERFACE_FACTORY")
         if session_interface_factory:
             if isinstance(session_interface_factory, six.string_types):
                 app.session_interface = import_string(session_interface_factory)()

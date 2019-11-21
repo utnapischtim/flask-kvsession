@@ -9,7 +9,7 @@ def test_serialize():
     dt = datetime.utcfromtimestamp(t)
     sid = SessionID(1234, dt)
 
-    assert '%x_%x' % (1234, t) == sid.serialize()
+    assert "%x_%x" % (1234, t) == sid.serialize()
 
 
 def test_automatic_created_date():
