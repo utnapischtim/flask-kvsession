@@ -14,8 +14,8 @@ def read(fname):
 
 
 setup(
-    name='Flask-KVSession',
-    version='0.6.3.dev1',
+    name='Flask-KVSession-Invenio',
+    version='0.6.3',
     url='https://github.com/mbr/flask-kvsession',
     license='MIT',
     author='Marc Brinkmann',
@@ -26,11 +26,15 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        'Flask>=0.8', 'simplekv>=0.9.2', 'werkzeug', 'itsdangerous>=0.20',
+        'Flask>=0.8',
+        'itsdangerous>=0.20',
+        'simplekv>=0.9.2',
         'six',
+        'werkzeug',
     ],
     classifiers=[
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ]
 )
