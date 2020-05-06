@@ -25,5 +25,4 @@ deploy:
   distributions: "sdist bdist_wheel"
   on:
     tags: true
-    repo: inveniosoftware/Flask-KVSession-Invenio
   skip_existing: true
