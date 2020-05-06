@@ -1,13 +1,13 @@
 language: python
 
-env:
-- TOXENV=py36
-- TOXENV=py37
-- TOXENV=py38
+python:
+   - "3.6"
+   - "3.7"
+   - "3.8"
 
 matrix:
   allow_failures:
-    - TOXENV=py38
+    - python: 3.8
 
 install: pip install tox
 script: tox
