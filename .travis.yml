@@ -1,8 +1,26 @@
 language: python
+
 env:
-- TOXENV=py27
 - TOXENV=py36
+- TOXENV=py37
+- TOXENV=py38
+
+matrix:
+  allow_failures:
+    - TOXENV=py38
+
 install: pip install tox
 script: tox
 services:
   - redis-server
+
+deploy:
+  provider: pypi
+  user: inveniosoftware
+  password:
+    secure: "jhM7LIYWXbVPrdm2c+by+HZGJ6RrLDcaWGbnVt0foFvZRmrfq79GZqVjAaPerUqq/FLX6TggRAU1U863CszhlaNxpBB2W1Pgn8aMYA+O084IfR8YZvDzcp473djMBvTWsSX63FWXwVNcDwuRvwWDTiecz+3V4aDzLu99wPV5dERUYMKzU/n/4QdwWJnGXeNMLGBQc+t966Fyg3xPs7OIldWk0tkVucAwuZVYFSL/L8OeVIj6x76JmhK/my+cxP9eStui+btJWooY0hZQ0A1J3o7RMc0sywDO0xMeUEth7tjeIOj+id03o6MuU4jTbEeYhjGp5sdQNweWq9QN7BRugjr3BR0MVeml7xlBGoJjsm5u/FNfSwOzYKHzF2S3ApC0mJCiZdZB+/bvUjj2fID8mZ7PrKy6P1UnlxLveTU07eoGi/fTz6GJ0tAB20/vm+OVdv8/1PaTUhwfh0gBp4lVC/j/7N3DdyMG87+5ZOQ26Xc43KTDMQmn5qNCpdEC1IyV8ubwgtjzen7Pbu2pL4/STwtfUpGhx3LS0ugAFXwAQkdAj23f1oShQ2WiYuoA3L2HWkX5YdGYGcQFaokztschAlxGEPjjWxBh2W6u1hl6/ikfCMognnHyQEBzneRkFJFeIgpUkXs53wd7hcR1uTO+9vh5jG0idtdbknvK/ScVsYI="
+  distributions: "compile_catalog sdist bdist_wheel"
+  on:
+    tags: true
+    repo: inveniosoftware/Flask-KVSession-Invenio
+  skip_existing: true
