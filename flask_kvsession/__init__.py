@@ -35,7 +35,7 @@ class SessionID(object):
     """
 
     def __init__(self, id, created=None):
-        if None == created:
+        if created is None:
             created = datetime.utcnow()
 
         self.id = id
@@ -210,7 +210,7 @@ class KVSessionInterface(SessionInterface):
 
             response.set_cookie(
                 key=app.config["SESSION_COOKIE_NAME"],
-                value=cookie_data,
+                value=cookie_data.decode("utf-8"),
                 expires=self.get_expiration_time(app, session),
                 path=self.get_cookie_path(app),
                 domain=self.get_cookie_domain(app),
